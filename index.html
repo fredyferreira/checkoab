@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correção de Provas</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .column {
+        float: left;
+        width: 50%;
+    }
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+    .correto {
+        background-color: #c8e6c9;
+    }
+    .incorreto {
+        background-color: #ffcdd2;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Correção de Provas</h2>
+
+    <div class="row">
+        <div class="column">
+            <h3>Respostas do Aluno</h3>
+            <button onclick="limparColuna('aluno')">Limpar Respostas</button>
+            <button onclick="limparTudo()">Limpar Tudo</button>
+            <button onclick="gravarRespostas('aluno')">Gravar Tudo</button>
+            <form id="alunoForm">
+                <ol id="alunoRespostas"></ol>
+            </form>
+        </div>
+        <div class="column">
+            <h3>Gabarito Oficial</h3>
+            <button onclick="limparColuna('gabarito')">Limpar Respostas</button>
+            <button onclick="gravarRespostas('gabarito')">Gravar Tudo</button>
+            <form id="gabaritoForm">
+                <ol id="gabaritoRespostas"></ol>
+            </form>
+        </div>
+    </div>
+
+    <button onclick="corrigirProva()">Corrigir Prova</button>
+
+    <div id="resultado"></div>
+</div>
+
+<script>
+    // Função para preencher automaticamente os campos de respostas
+    function preencherRespostas(inputId, value) {
+        const inputs = document.querySelectorAll(`#${inputId}Form input`);
+        inputs.forEach((input, index) => {
+            input.value = value[index];
+        });
+    }
+
+    // Função para limpar os campos de uma coluna
+    function limparColuna(inputId) {
+        const inputs = document.querySelectorAll(`#${inputId}Form input`);
+        inputs.forEach((input) => {
+            input.value = '';
+            input.classList.remove('correto', 'incorreto');
+        });
+    }
+
+    // Função para limpar todos os campos
+    function limparTudo() {
+        limparColuna('aluno');
+        limparColuna('gabarito');
+    }
+
+    // Função para gravar as respostas localmente
+    function gravarRespostas(inputId) {
+        const inputs = document.querySelectorAll(`#${inputId}Form input`);
+        const respostas = [];
+        inputs.forEach((input) => {
+            respostas.push(input.value);
+        });
+        localStorage.setItem(`${inputId}Respostas`, JSON.stringify(respostas));
+        alert('Respostas gravadas com sucesso!');
+    }
+
+    // Cria os campos de respostas do aluno e do gabarito
+    const alunoRespostas = document.getElementById('alunoRespostas');
+    const gabaritoRespostas = document.getElementById('gabaritoRespostas');
+
+    for (let i = 1; i <= 80; i++) {
+        const alunoInput = document.createElement('input');
+        alunoInput.type = 'text';
+        alunoInput.maxLength = 1;
+        alunoInput.size = 1;
+        alunoInput.addEventListener('input', function() {
+            if (this.value.length === this.maxLength) {
+                const next = this.parentElement.nextElementSibling.querySelector('input');
+                if (next) {
+                    next.focus();
+                }
+            }
+        });
+
+        const gabaritoInput = document.createElement('input');
+        gabaritoInput.type = 'text';
+        gabaritoInput.maxLength = 1;
+        gabaritoInput.size = 1;
+        gabaritoInput.addEventListener('input', function() {
+            if (this.value.length === this.maxLength) {
+                const next = this.parentElement.nextElementSibling.querySelector('input');
+                if (next) {
+                    next.focus();
+                }
+            }
+        });
+
+        const alunoListItem = document.createElement('li');
+        alunoListItem.textContent = `Questão ${i}: `;
+        alunoListItem.appendChild(alunoInput);
+        alunoRespostas.appendChild(alunoListItem);
+
+        const gabaritoListItem = document.createElement('li');
+        gabaritoListItem.textContent = `Questão ${i}: `;
+        gabaritoListItem.appendChild(gabaritoInput);
+        gabaritoRespostas.appendChild(gabaritoListItem);
+    }
+
+    // Função para corrigir a prova
+    function corrigirProva() {
+        const alunoRespostas = document.getElementById('alunoRespostas').getElementsByTagName('input');
+        const gabaritoRespostas = document.getElementById('gabaritoRespostas').getElementsByTagName('input');
+        let acertos = 0;
+
+        for (let i = 0; i < alunoRespostas.length; i++) {
+            if (alunoRespostas[i].value.toUpperCase() === gabaritoRespostas[i].value.toUpperCase()) {
+                acertos++;
+                alunoRespostas[i].classList.add('correto'); // Adiciona a classe "correto" às respostas corretas do aluno
+            } else {
+                alunoRespostas[i].classList.add('incorreto'); // Adiciona a classe "incorreto" às respostas incorretas do aluno
+            }
+        }
+
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = `Pontuação: ${acertos}/80<br>`;
+
+        if (acertos >= 40) {
+            resultadoDiv.innerHTML += '<p style="color: green; font-size: 24px; font-weight: bold;">APROVADO!!</p>';
+        } else {
+            resultadoDiv.innerHTML += '<p style="color: red; font-size: 24px; font-weight: bold;">REPROVADO</p>';
+        }
+    }
+
+  
+
+    // Preenche automaticamente as respostas do aluno e do gabarito com o texto do bloco de notas
+    window.onload = function() {
+        const respostaAluno = localStorage.getItem('alunoRespostas');
+        const gabarito = localStorage.getItem('gabaritoRespostas');
+
+        if (respostaAluno && gabarito) {
+            preencherRespostas('aluno', JSON.parse(respostaAluno));
+            preencherRespostas('gabarito', JSON.parse(gabarito));
+        }
+    };
+</script>
+
+</body>
+</html>
