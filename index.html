@@ -3,24 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Correção de Provas</title>
+<title>Correção de Provas - OAB</title>
 <style>
     body {
         font-family: Arial, sans-serif;
+        background: url('peritos1.jpg') no-repeat center center fixed;
+        background-size: cover;
+        color: #333;
+        margin: 0;
+        padding: 0;
     }
     .container {
-        max-width: 800px;
+        max-width: 1000px;
         margin: 0 auto;
         padding: 20px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    h2, h3 {
+        text-align: center;
     }
     .column {
         float: left;
-        width: 50%;
+        width: 100%;
     }
     .row:after {
         content: "";
         display: table;
         clear: both;
+    }
+    .button-group {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #007BFF;
+        color: white;
+        font-size: 16px;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    select {
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 16px;
+        border-radius: 5px;
+        width: 100%;
+    }
+    ol {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    ol li {
+        display: inline-block;
+        width: 9%;
+        margin: 0 0 10px 0;
+        text-align: center;
     }
     .correto {
         background-color: #c8e6c9;
@@ -28,13 +74,26 @@
     .incorreto {
         background-color: #ffcdd2;
     }
+    #resultado {
+        text-align: center;
+        font-size: 20px;
+        margin-top: 20px;
+    }
 </style>
 </head>
 <body>
-
 <div class="container">
-    <h2>Correção de Provas</h2>
-
+    <h2>Correção de Provas - OAB</h2>
+    <div class="button-group">
+        <select id="tipoProva">
+            <option value="" disabled selected>Selecione o Tipo de Prova</option>
+            <option value="tipo1">Prova Tipo 1</option>
+            <option value="tipo2">Prova Tipo 2</option>
+            <option value="tipo3">Prova Tipo 3</option>
+            <option value="tipo4">Prova Tipo 4</option>
+        </select>
+        <button onclick="puxarGabarito()">Puxar Gabarito</button>
+    </div>
     <div class="row">
         <div class="column">
             <h3>Respostas do Aluno</h3>
@@ -54,127 +113,186 @@
             </form>
         </div>
     </div>
-
     <button onclick="corrigirProva()">Corrigir Prova</button>
-
     <div id="resultado"></div>
+    <footer style="text-align: center; margin-top: 20px;">
+        <p>Siga no Instagram: <strong>@ofredyferreira</strong></p>
+    </footer>
 </div>
 
 <script>
-    // Função para preencher automaticamente os campos de respostas
-    function preencherRespostas(inputId, value) {
-        const inputs = document.querySelectorAll(`#${inputId}Form input`);
-        inputs.forEach((input, index) => {
-            input.value = value[index];
-        });
-    }
+// Função para preencher automaticamente os campos de respostas
+function preencherRespostas(inputId, value) {
+    const inputs = document.querySelectorAll(`#${inputId}Form input`);
+    inputs.forEach((input, index) => {
+        input.value = value[index];
+    });
+}
 
-    // Função para limpar os campos de uma coluna
-    function limparColuna(inputId) {
-        const inputs = document.querySelectorAll(`#${inputId}Form input`);
-        inputs.forEach((input) => {
-            input.value = '';
-            input.classList.remove('correto', 'incorreto');
-        });
-    }
+// Função para limpar os campos de uma coluna
+function limparColuna(inputId) {
+    const inputs = document.querySelectorAll(`#${inputId}Form input`);
+    inputs.forEach((input) => {
+        input.value = '';
+        input.classList.remove('correto', 'incorreto');
+    });
+}
 
-    // Função para limpar todos os campos
-    function limparTudo() {
-        limparColuna('aluno');
-        limparColuna('gabarito');
-    }
+// Função para limpar todos os campos
+function limparTudo() {
+    limparColuna('aluno');
+    limparColuna('gabarito');
+}
 
-    // Função para gravar as respostas localmente
-    function gravarRespostas(inputId) {
-        const inputs = document.querySelectorAll(`#${inputId}Form input`);
-        const respostas = [];
-        inputs.forEach((input) => {
-            respostas.push(input.value);
-        });
-        localStorage.setItem(`${inputId}Respostas`, JSON.stringify(respostas));
-        alert('Respostas gravadas com sucesso!');
-    }
+// Função para gravar as respostas localmente
+function gravarRespostas(inputId) {
+    const inputs = document.querySelectorAll(`#${inputId}Form input`);
+    const respostas = [];
+    inputs.forEach((input) => {
+        respostas.push(input.value);
+    });
+    localStorage.setItem(`${inputId}Respostas`, JSON.stringify(respostas));
+    alert('Respostas gravadas com sucesso!');
+}
 
-    // Cria os campos de respostas do aluno e do gabarito
-    const alunoRespostas = document.getElementById('alunoRespostas');
-    const gabaritoRespostas = document.getElementById('gabaritoRespostas');
+// Cria os campos de respostas do aluno e do gabarito
+const alunoRespostas = document.getElementById('alunoRespostas');
+const gabaritoRespostas = document.getElementById('gabaritoRespostas');
 
-    for (let i = 1; i <= 80; i++) {
-        const alunoInput = document.createElement('input');
-        alunoInput.type = 'text';
-        alunoInput.maxLength = 1;
-        alunoInput.size = 1;
-        alunoInput.addEventListener('input', function() {
-            if (this.value.length === this.maxLength) {
-                const next = this.parentElement.nextElementSibling.querySelector('input');
-                if (next) {
-                    next.focus();
-                }
-            }
-        });
-
-        const gabaritoInput = document.createElement('input');
-        gabaritoInput.type = 'text';
-        gabaritoInput.maxLength = 1;
-        gabaritoInput.size = 1;
-        gabaritoInput.addEventListener('input', function() {
-            if (this.value.length === this.maxLength) {
-                const next = this.parentElement.nextElementSibling.querySelector('input');
-                if (next) {
-                    next.focus();
-                }
-            }
-        });
-
-        const alunoListItem = document.createElement('li');
-        alunoListItem.textContent = `Questão ${i}: `;
-        alunoListItem.appendChild(alunoInput);
-        alunoRespostas.appendChild(alunoListItem);
-
-        const gabaritoListItem = document.createElement('li');
-        gabaritoListItem.textContent = `Questão ${i}: `;
-        gabaritoListItem.appendChild(gabaritoInput);
-        gabaritoRespostas.appendChild(gabaritoListItem);
-    }
-
-    // Função para corrigir a prova
-    function corrigirProva() {
-        const alunoRespostas = document.getElementById('alunoRespostas').getElementsByTagName('input');
-        const gabaritoRespostas = document.getElementById('gabaritoRespostas').getElementsByTagName('input');
-        let acertos = 0;
-
-        for (let i = 0; i < alunoRespostas.length; i++) {
-            if (alunoRespostas[i].value.toUpperCase() === gabaritoRespostas[i].value.toUpperCase()) {
-                acertos++;
-                alunoRespostas[i].classList.add('correto'); // Adiciona a classe "correto" às respostas corretas do aluno
-            } else {
-                alunoRespostas[i].classList.add('incorreto'); // Adiciona a classe "incorreto" às respostas incorretas do aluno
+for (let i = 1; i <= 80; i++) {
+    const alunoInput = document.createElement('input');
+    alunoInput.type = 'text';
+    alunoInput.maxLength = 1;
+    alunoInput.size = 1;
+    alunoInput.addEventListener('input', function() {
+        if (this.value.length === this.maxLength) {
+            const next = this.parentElement.nextElementSibling ? this.parentElement.nextElementSibling.querySelector('input') : null;
+            if (next) {
+                next.focus();
             }
         }
+    });
 
-        const resultadoDiv = document.getElementById('resultado');
-        resultadoDiv.innerHTML = `Pontuação: ${acertos}/80<br>`;
+    const gabaritoInput = document.createElement('input');
+    gabaritoInput.type = 'text';
+    gabaritoInput.maxLength = 1;
+    gabaritoInput.size = 1;
+    gabaritoInput.addEventListener('input', function() {
+        if (this.value.length === this.maxLength) {
+            const next = this.parentElement.nextElementSibling ? this.parentElement.nextElementSibling.querySelector('input') : null;
+            if (next) {
+                next.focus();
+            }
+        }
+    });
 
-        if (acertos >= 40) {
-            resultadoDiv.innerHTML += '<p style="color: green; font-size: 24px; font-weight: bold;">APROVADO!!</p>';
+    const alunoListItem = document.createElement('li');
+    alunoListItem.textContent = `Q${i.toString().padStart(2, '0')}: `;
+    alunoListItem.appendChild(alunoInput);
+    alunoRespostas.appendChild(alunoListItem);
+
+    const gabaritoListItem = document.createElement('li');
+    gabaritoListItem.textContent = `Q${i.toString().padStart(2, '0')}: `;
+    gabaritoListItem.appendChild(gabaritoInput);
+    gabaritoRespostas.appendChild(gabaritoListItem);
+}
+
+// Função para corrigir a prova
+function corrigirProva() {
+    const alunoRespostas = document.getElementById('alunoRespostas').getElementsByTagName('input');
+    const gabaritoRespostas = document.getElementById('gabaritoRespostas').getElementsByTagName('input');
+    let acertos = 0;
+    let camposVazios = false;
+
+    // Verificar se todos os campos estão preenchidos
+    for (let i = 0; i < alunoRespostas.length; i++) {
+        if (alunoRespostas[i].value.trim() === '' || gabaritoRespostas[i].value.trim() === '') {
+            camposVazios = true;
+            break;
+        }
+    }
+
+    if (camposVazios) {
+        alert('Por favor, preencha todos os campos antes de corrigir a prova.');
+        return;
+    }
+
+    for (let i = 0; i < alunoRespostas.length; i++) {
+        if (alunoRespostas[i].value.toUpperCase() === gabaritoRespostas[i].value.toUpperCase()) {
+            acertos++;
+            alunoRespostas[i].classList.add('correto');
         } else {
-            resultadoDiv.innerHTML += '<p style="color: red; font-size: 24px; font-weight: bold;">REPROVADO</p>';
+            alunoRespostas[i].classList.add('incorreto');
         }
     }
 
-  
+    const resultadoDiv = document.getElementById('resultado');
+    resultadoDiv.innerHTML = `Pontuação: ${acertos}/80<br>`;
 
-    // Preenche automaticamente as respostas do aluno e do gabarito com o texto do bloco de notas
-    window.onload = function() {
-        const respostaAluno = localStorage.getItem('alunoRespostas');
-        const gabarito = localStorage.getItem('gabaritoRespostas');
+    if (acertos >= 40) {
+        resultadoDiv.innerHTML += '<p style="color: green; font-size: 24px; font-weight: bold;">APROVADO!!</p>';
+        // Tocar som de aprovação
+        const audio = new Audio('aprovados.mp3');
+        audio.play();
+    } else {
+        resultadoDiv.innerHTML += '<p style="color: red; font-size: 24px; font-weight: bold;">REPROVADO</p>';
+        // Tocar som de reprovação
+        const audio = new Audio('reprovado.mp3');
+        audio.play();
+    }
+}
 
-        if (respostaAluno && gabarito) {
-            preencherRespostas('aluno', JSON.parse(respostaAluno));
-            preencherRespostas('gabarito', JSON.parse(gabarito));
-        }
-    };
+
+
+// Função para puxar o gabarito do arquivo JSON
+function puxarGabarito() {
+    const tipoProva = document.getElementById('tipoProva').value;
+    if (!tipoProva) {
+        alert('Selecione um tipo de prova.');
+        return;
+    }
+
+    fetch('gabaritos.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao carregar o gabarito. Status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const gabarito = data[tipoProva];
+            if (gabarito) {
+                preencherRespostas('gabarito', gabarito);
+                alert('Gabarito carregado com sucesso!');
+            } else {
+                alert('Gabarito não encontrado para o tipo de prova selecionado.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar o gabarito:', error);
+            alert('Erro ao carregar o gabarito. Consulte o console para mais detalhes.');
+        });
+}
+
+// Função para restaurar as respostas gravadas
+function restaurarRespostas() {
+    const alunoRespostasGravadas = localStorage.getItem('alunoRespostas');
+    const gabaritoRespostasGravadas = localStorage.getItem('gabaritoRespostas');
+
+    if (alunoRespostasGravadas) {
+        const alunoRespostas = JSON.parse(alunoRespostasGravadas);
+        preencherRespostas('aluno', alunoRespostas);
+    }
+
+    if (gabaritoRespostasGravadas) {
+        const gabaritoRespostas = JSON.parse(gabaritoRespostasGravadas);
+        preencherRespostas('gabarito', gabaritoRespostas);
+    }
+}
+
+// Restaurar as respostas ao carregar a página
+window.onload = restaurarRespostas;
+
 </script>
-
 </body>
 </html>
